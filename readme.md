@@ -1,129 +1,129 @@
-# Multi-Destination ZIP Extractor
+import 'dart:io';
+import 'package:archive/archive.dart';
 
-A simple command-line tool written in Dart that allows you to extract multiple ZIP files to multiple destination folders simultaneously.
+void main() async {
+  // Ask for source directory
+  stdout.write('Enter source folder path for ZIP files: ');
+  final sourcePath = stdin.readLineSync();
+  
+  if (sourcePath == null || sourcePath.trim().isEmpty) {
+    print('No source path provided. Exiting.');
+    return;
+  }
+  
+  final sourceDir = Directory(sourcePath.trim());
 
-## Features
+  // Check if source exists
+  if (!await sourceDir.exists()) {
+    print('Source folder ${sourceDir.path} does not exist.');
+    return;
+  }
 
-- Specify a custom source directory containing ZIP files
-- Extract to multiple destination directories in one operation
-- Maintains directory structure within each ZIP file
-- Interactive command-line interface with clear prompts
-- Shows extraction progress and results
+  // Get all destinations from the user
+  final destinations = await getDestinations();
+  
+  if (destinations.isEmpty) {
+    print('No destinations provided. Exiting.');
+    return;
+  }
 
-## Requirements
+  // Create all destination directories if they don't exist
+  for (final destinationPath in destinations) {
+    final destinationDir = Directory(destinationPath);
+    if (!await destinationDir.exists()) {
+      await destinationDir.create(recursive: true);
+    }
+  }
 
-- Dart SDK (version 2.12.0 or higher recommended)
-- The `archive` package for handling ZIP files
+  // Get all .zip files in the source directory
+  print('\nSearching for ZIP files in ${sourceDir.path}...');
+  final zipFiles = sourceDir
+      .listSync()
+      .where((f) => f is File && f.path.toLowerCase().endsWith('.zip'));
 
-## Installation
+  if (zipFiles.isEmpty) {
+    print('No ZIP files found in ${sourceDir.path}.');
+    return;
+  }
+  
+  print('Found ${zipFiles.length} ZIP file(s).');
+  zipFiles.forEach((file) {
+    print('- ${File(file.path).uri.pathSegments.last}');
+  });
 
-1. Make sure you have the [Dart SDK](https://dart.dev/get-dart) installed
-2. Clone this repository or download the source code
-3. Navigate to the project directory
-4. Run `dart pub get` to install dependencies
+  // Loop through each ZIP file
+  for (var file in zipFiles) {
+    final zipFile = File(file.path);
+    final zipBytes = await zipFile.readAsBytes();
+    final archive = ZipDecoder().decodeBytes(zipBytes);
+    final zipName = zipFile.uri.pathSegments.last.replaceAll('.zip', '');
 
-## Usage
+    // Extract to each destination
+    for (final destinationPath in destinations) {
+      final destinationDir = Directory(destinationPath);
+      final extractTo = Directory('${destinationDir.path}/$zipName');
 
-1. Run the program:
-   ```
-   dart run extrator.dart
-   ```
+      await extractTo.create(recursive: true);
 
-2. When prompted, enter the source folder containing your ZIP files
-   ```
-   Enter source folder path for ZIP files: C:/Downloads/my_zips
-   ```
+      for (final file in archive) {
+        final filename = file.name;
+        final outPath = '${extractTo.path}/$filename';
 
-3. The program will display all found ZIP files in the specified directory:
-   ```
-   Searching for ZIP files in C:/Downloads/my_zips...
-   Found 3 ZIP file(s).
-   - project1.zip
-   - project2.zip
-   - documents.zip
-   ```
+        if (file.isFile) {
+          final outFile = File(outPath);
+          await outFile.create(recursive: true);
+          await outFile.writeAsBytes(file.content as List<int>);
+        } else {
+          await Directory(outPath).create(recursive: true);
+        }
+      }
 
-4. Enter one or more destination folders where you want to extract the ZIP files:
-   ```
-   Now, let's set up your destination folders:
-   Enter destination folder path (or press Enter when done): D:/Projects
-   Destination added: D:/Projects
-   Enter another destination folder path (or press Enter when done): E:/Backup
-   Destination added: E:/Backup
-   Enter another destination folder path (or press Enter when done): 
-   ```
+      print('Extracted: ${zipFile.path} → ${extractTo.path}');
+    }
+  }
 
-5. Press Enter when you're done adding destinations
+  final destinationsList = destinations.join('\n- ');
+  print('✅ All ZIPs extracted to: \n- $destinationsList');
+}
 
-6. The program will extract each ZIP file to all specified destinations and show progress:
-   ```
-   Selected destinations:
-   1. D:/Projects
-   2. E:/Backup
-   
-   Extracted: C:/Downloads/my_zips/project1.zip → D:/Projects/project1
-   Extracted: C:/Downloads/my_zips/project1.zip → E:/Backup/project1
-   Extracted: C:/Downloads/my_zips/project2.zip → D:/Projects/project2
-   Extracted: C:/Downloads/my_zips/project2.zip → E:/Backup/project2
-   Extracted: C:/Downloads/my_zips/documents.zip → D:/Projects/documents
-   Extracted: C:/Downloads/my_zips/documents.zip → E:/Backup/documents
-   
-   ✅ All ZIPs extracted to: 
-   - D:/Projects
-   - E:/Backup
-   ```
-
-## Project Structure
-
-```
-multi_destination_zip_extractor/
-├── bin/
-│   └── extrator.dart     # Main application code
-├── pubspec.yaml      # Dart dependencies
-└── README.md         # This file
-```
-
-## Dependencies
-
-This project requires the following Dart package:
-- `archive`: For handling ZIP file decompression
-
-The `pubspec.yaml` file should include:
-
-```yaml
-name: multi_destination_zip_extractor
-description: Tool to extract ZIP files to multiple destinations
-version: 1.0.0
-
-environment:
-  sdk: '>=2.12.0 <3.0.0'
-
-dependencies:
-  archive: ^3.3.0
-```
-
-## Error Handling
-
-The program includes basic error handling for:
-- Non-existent source directories
-- Empty input
-- No ZIP files found in the source directory
-
-## License
-
-MIT License
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Troubleshooting
-
-**Q: The program isn't finding my ZIP files**  
-A: Make sure you're entering the correct full path to the directory containing your ZIP files and that they have the `.zip` extension (case insensitive).
-
-**Q: I'm getting permission errors**  
-A: Make sure you have read permissions for the source directory and write permissions for the destination directories.
-
-**Q: The extraction is taking a long time**  
-A: Large ZIP files or extracting to multiple destinations can take some time. The program will show progress for each extraction.
+/// Gets multiple destination paths from the user
+Future<List<String>> getDestinations() async {
+  final destinations = <String>[];
+  
+  print('\nNow, let\'s set up your destination folders:');
+  while (true) {
+    if (destinations.isEmpty) {
+      stdout.write('Enter destination folder path (or press Enter when done): ');
+    } else {
+      stdout.write('Enter another destination folder path (or press Enter when done): ');
+    }
+    
+    final userInput = stdin.readLineSync();
+    
+    if (userInput == null || userInput.trim().isEmpty) {
+      if (destinations.isEmpty) {
+        print('Warning: No destinations added. Add at least one destination or press Enter again to exit.');
+        final secondChance = stdin.readLineSync();
+        if (secondChance == null || secondChance.trim().isEmpty) {
+          break;
+        } else {
+          destinations.add(secondChance.trim());
+        }
+      } else {
+        break; // Exit the loop if the user presses Enter with destinations already added
+      }
+    } else {
+      destinations.add(userInput.trim());
+      print('Destination added: ${userInput.trim()}');
+    }
+  }
+  
+  if (destinations.isNotEmpty) {
+    print('\nSelected destinations:');
+    for (int i = 0; i < destinations.length; i++) {
+      print('${i + 1}. ${destinations[i]}');
+    }
+  }
+  
+  return destinations;
+}
