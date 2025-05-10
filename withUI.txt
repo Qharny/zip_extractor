@@ -1,0 +1,192 @@
+import 'dart:io';
+import 'package:archive/archive.dart';
+import 'package:file_picker/file_picker.dart';
+
+void main() async {
+  print('ZIP File Extraction Tool');
+  print('=======================\n');
+  
+  // Get source directory using GUI
+  final sourceDir = await getSourceDirectory();
+  if (sourceDir == null) {
+    print('No source directory selected. Exiting.');
+    return;
+  }
+  
+  print('Selected source: ${sourceDir.path}');
+
+  // Check if source exists and contains ZIP files
+  if (!await sourceDir.exists()) {
+    print('Source folder ${sourceDir.path} does not exist.');
+    return;
+  }
+
+  // Get all .zip files in the source directory
+  print('\nSearching for ZIP files in ${sourceDir.path}...');
+  final zipFiles = sourceDir
+      .listSync()
+      .where((f) => f is File && f.path.toLowerCase().endsWith('.zip'))
+      .toList();
+
+  if (zipFiles.isEmpty) {
+    print('No ZIP files found in ${sourceDir.path}.');
+    return;
+  }
+  
+  print('Found ${zipFiles.length} ZIP file(s):');
+  zipFiles.forEach((file) {
+    print('- ${File(file.path).uri.pathSegments.last}');
+  });
+
+  // Get all destinations from the user using GUI
+  final destinations = await getDestinationDirectories();
+  
+  if (destinations.isEmpty) {
+    print('No destinations selected. Exiting.');
+    return;
+  }
+
+  // Create all destination directories if they don't exist
+  for (final destinationPath in destinations) {
+    final destinationDir = Directory(destinationPath);
+    if (!await destinationDir.exists()) {
+      await destinationDir.create(recursive: true);
+    }
+  }
+
+  // Confirm before extracting
+  stdout.write('\nReady to extract ${zipFiles.length} ZIP files to ${destinations.length} destination(s). Proceed? (y/n): ');
+  final confirmation = stdin.readLineSync()?.toLowerCase() ?? '';
+  if (confirmation != 'y' && confirmation != 'yes') {
+    print('Operation cancelled.');
+    return;
+  }
+
+  // Loop through each ZIP file
+  int totalExtracted = 0;
+  print('\nExtracting files...');
+  
+  for (var file in zipFiles) {
+    final zipFile = File(file.path);
+    final zipBytes = await zipFile.readAsBytes();
+    final archive = ZipDecoder().decodeBytes(zipBytes);
+    final zipName = zipFile.uri.pathSegments.last.replaceAll('.zip', '');
+
+    // Extract to each destination
+    for (final destinationPath in destinations) {
+      final destinationDir = Directory(destinationPath);
+      final extractTo = Directory('${destinationDir.path}/$zipName');
+
+      // Create the extraction directory
+      await extractTo.create(recursive: true);
+
+      // Extract files
+      try {
+        for (final file in archive) {
+          final filename = file.name;
+          final outPath = '${extractTo.path}/$filename';
+
+          if (file.isFile) {
+            final outFile = File(outPath);
+            await outFile.create(recursive: true);
+            await outFile.writeAsBytes(file.content as List<int>);
+          } else {
+            await Directory(outPath).create(recursive: true);
+          }
+        }
+        
+        print('✓ Extracted: ${zipFile.path} → ${extractTo.path}');
+        totalExtracted++;
+      } catch (e) {
+        print('✗ Error extracting ${zipFile.path} to ${extractTo.path}: $e');
+      }
+    }
+  }
+
+  final destinationsList = destinations.map((d) => '- $d').join('\n');
+  print('\n✅ Extraction complete!');
+  print('Successfully extracted ${totalExtracted} archives.');
+  print('Destinations:\n$destinationsList');
+}
+
+/// Gets the source directory using a GUI folder picker
+Future<Directory?> getSourceDirectory() async {
+  print('Select the source folder containing ZIP files:');
+  
+  try {
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
+      dialogTitle: 'Select Source Folder',
+    );
+    
+    if (selectedDirectory == null) {
+      return null;
+    }
+    
+    return Directory(selectedDirectory);
+  } catch (e) {
+    print('Error selecting directory: $e');
+    // Fall back to console input if GUI fails
+    stdout.write('Enter source folder path: ');
+    final path = stdin.readLineSync();
+    return path != null && path.isNotEmpty ? Directory(path.trim()) : null;
+  }
+}
+
+/// Gets multiple destination directories using GUI folder pickers
+Future<List<String>> getDestinationDirectories() async {
+  final destinations = <String>[];
+  bool continueAdding = true;
+  
+  print('\nNow, let\'s select your destination folders:');
+  
+  while (continueAdding) {
+    try {
+      String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: 'Select Destination Folder ${destinations.isEmpty ? "" : "(${destinations.length + 1})"}',
+      );
+      
+      if (selectedDirectory != null && selectedDirectory.isNotEmpty) {
+        destinations.add(selectedDirectory);
+        print('Destination added: $selectedDirectory');
+        
+        // Ask if user wants to add another destination
+        stdout.write('Add another destination? (y/n): ');
+        final response = stdin.readLineSync()?.toLowerCase() ?? 'n';
+        continueAdding = (response == 'y' || response == 'yes');
+      } else {
+        // User cancelled the folder picker
+        if (destinations.isEmpty) {
+          stdout.write('No destination selected. Try again? (y/n): ');
+          final retry = stdin.readLineSync()?.toLowerCase() ?? 'n';
+          continueAdding = (retry == 'y' || retry == 'yes');
+        } else {
+          continueAdding = false;
+        }
+      }
+    } catch (e) {
+      print('Error selecting directory: $e');
+      // Fall back to console input if GUI fails
+      stdout.write('Enter destination folder path (or press Enter to finish): ');
+      final path = stdin.readLineSync();
+      if (path != null && path.isNotEmpty) {
+        destinations.add(path.trim());
+        print('Destination added: ${path.trim()}');
+      } else if (destinations.isEmpty) {
+        stdout.write('No destination added. Try again? (y/n): ');
+        final retry = stdin.readLineSync()?.toLowerCase() ?? 'n';
+        continueAdding = (retry == 'y' || retry == 'yes');
+      } else {
+        continueAdding = false;
+      }
+    }
+  }
+  
+  if (destinations.isNotEmpty) {
+    print('\nSelected destinations:');
+    for (int i = 0; i < destinations.length; i++) {
+      print('${i + 1}. ${destinations[i]}');
+    }
+  }
+  
+  return destinations;
+}
