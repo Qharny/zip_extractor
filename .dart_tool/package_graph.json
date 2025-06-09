@@ -12,8 +12,14 @@
         "path"
       ],
       "devDependencies": [
+        "lints",
         "test"
       ]
+    },
+    {
+      "name": "lints",
+      "version": "3.0.0",
+      "dependencies": []
     },
     {
       "name": "test",

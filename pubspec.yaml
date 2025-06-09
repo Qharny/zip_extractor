@@ -1,6 +1,7 @@
 name: zip_extractor
-description: A Dart CLI tool to extract multiple ZIP files.
+description: A tool to extract ZIP files to multiple destinations
 version: 1.0.0
+# author: "Manasseh"
 
 environment:
   sdk: '>=3.7.0 <4.0.0'
@@ -12,3 +13,7 @@ dependencies:
 
 dev_dependencies:
   test: ^1.22.0
+  lints: ^3.0.0
+
+executables:
+  extractor:
