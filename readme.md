@@ -1,129 +1,250 @@
-# Multi-Destination ZIP Extractor
+# 🗜️ ZIP Extractor Tool
 
-A simple command-line tool written in Dart that allows you to extract multiple ZIP files to multiple destination folders simultaneously.
+A powerful, user-friendly command-line tool to extract multiple ZIP files from a source directory to multiple destination directories simultaneously.
 
-## Features
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-- Specify a custom source directory containing ZIP files
-- Extract to multiple destination directories in one operation
-- Maintains directory structure within each ZIP file
-- Interactive command-line interface with clear prompts
-- Shows extraction progress and results
+## ✨ Features
 
-## Requirements
+- 🚀 **Batch Extraction** - Extract all ZIP files from a directory at once
+- 🎯 **Multiple Destinations** - Extract to multiple locations simultaneously
+- 📁 **Auto Directory Creation** - Creates destination folders if they don't exist
+- 🛡️ **Error Handling** - Gracefully handles corrupted or invalid ZIP files
+- 📊 **Progress Tracking** - Shows detailed progress and file information
+- 🎨 **User-Friendly Interface** - Clear messages and helpful guidance
+- 💾 **Preserve Structure** - Maintains folder structure within ZIP files
+- 📈 **File Size Display** - Shows ZIP file sizes in human-readable format
 
-- Dart SDK (version 2.12.0 or higher recommended)
-- The `archive` package for handling ZIP files
+## 🚀 Quick Start
 
-## Installation
+### Download & Run (Easiest)
 
-1. Make sure you have the [Dart SDK](https://dart.dev/get-dart) installed
-2. Clone this repository or download the source code
-3. Navigate to the project directory
-4. Run `dart pub get` to install dependencies
+1. **Download** the executable from the [Releases](../../releases) page
+2. **Run** the executable:
+   - **Windows**: Double-click `zip_extractor.exe` or run from Command Prompt
+   - **Linux/macOS**: Run `./zip_extractor` in terminal
 
-## Usage
+### Command Line Usage
 
-1. Run the program:
-   ```
-   dart run extrator.dart
-   ```
+```bash
+# Run the tool
+./extractor
 
-2. When prompted, enter the source folder containing your ZIP files
-   ```
-   Enter source folder path for ZIP files: C:/Downloads/my_zips
-   ```
-
-3. The program will display all found ZIP files in the specified directory:
-   ```
-   Searching for ZIP files in C:/Downloads/my_zips...
-   Found 3 ZIP file(s).
-   - project1.zip
-   - project2.zip
-   - documents.zip
-   ```
-
-4. Enter one or more destination folders where you want to extract the ZIP files:
-   ```
-   Now, let's set up your destination folders:
-   Enter destination folder path (or press Enter when done): D:/Projects
-   Destination added: D:/Projects
-   Enter another destination folder path (or press Enter when done): E:/Backup
-   Destination added: E:/Backup
-   Enter another destination folder path (or press Enter when done): 
-   ```
-
-5. Press Enter when you're done adding destinations
-
-6. The program will extract each ZIP file to all specified destinations and show progress:
-   ```
-   Selected destinations:
-   1. D:/Projects
-   2. E:/Backup
-   
-   Extracted: C:/Downloads/my_zips/project1.zip → D:/Projects/project1
-   Extracted: C:/Downloads/my_zips/project1.zip → E:/Backup/project1
-   Extracted: C:/Downloads/my_zips/project2.zip → D:/Projects/project2
-   Extracted: C:/Downloads/my_zips/project2.zip → E:/Backup/project2
-   Extracted: C:/Downloads/my_zips/documents.zip → D:/Projects/documents
-   Extracted: C:/Downloads/my_zips/documents.zip → E:/Backup/documents
-   
-   ✅ All ZIPs extracted to: 
-   - D:/Projects
-   - E:/Backup
-   ```
-
-## Project Structure
-
-```
-multi_destination_zip_extractor/
-├── bin/
-│   └── extrator.dart     # Main application code
-├── pubspec.yaml      # Dart dependencies
-└── README.md         # This file
+# Show help
+./extractor --help
 ```
 
-## Dependencies
+## 📖 How to Use
 
-This project requires the following Dart package:
-- `archive`: For handling ZIP file decompression
+### Step-by-Step Guide
 
-The `pubspec.yaml` file should include:
+1. **Start the tool** by running the executable
+2. **Enter source path** - The folder containing your ZIP files
+   ```
+   Enter source folder path for ZIP files: C:\Downloads\ZipFiles
+   ```
+3. **Add destinations** - Enter one or more destination folders
+   ```
+   Enter destination folder path: C:\Extracted
+   Enter another destination path (or press Enter to continue): D:\Backup\Extracted
+   Enter another destination path (or press Enter to continue): [Press Enter]
+   ```
+4. **Watch the magic happen** - The tool will extract all ZIP files to all destinations
 
-```yaml
-name: multi_destination_zip_extractor
-description: Tool to extract ZIP files to multiple destinations
-version: 1.0.0
+### Example Workflow
 
-environment:
-  sdk: '>=2.12.0 <3.0.0'
+```
+🗜️  Welcome to ZIP Extractor Tool!
+========================================
 
-dependencies:
-  archive: ^3.3.0
+Enter source folder path for ZIP files: /home/user/downloads
+✅ Source folder found: /home/user/downloads
+
+📂 Setting up destination folders:
+Enter destination folder path: /home/user/extracted
+✅ Destination added: /home/user/extracted
+Enter another destination path (or press Enter to continue): /backup/extracted
+✅ Destination added: /backup/extracted
+Enter another destination path (or press Enter to continue): 
+
+🔍 Searching for ZIP files in /home/user/downloads...
+✅ Found 3 ZIP file(s):
+  📦 project1.zip (2.5 MB)
+  📦 documents.zip (1.2 MB)
+  📦 photos.zip (15.3 MB)
+
+🚀 Starting extraction process...
+
+📦 Processing: project1.zip
+  📄 Archive contains 25 file(s)
+  ✅ Extracted 25 file(s) to: /home/user/extracted/project1
+  ✅ Extracted 25 file(s) to: /backup/extracted/project1
+
+🎉 EXTRACTION COMPLETE!
 ```
 
-## Error Handling
+## 💻 System Requirements
 
-The program includes basic error handling for:
-- Non-existent source directories
-- Empty input
-- No ZIP files found in the source directory
+- **Operating System**: Windows 10+, Linux, or macOS
+- **Memory**: 100MB RAM minimum
+- **Storage**: 50MB free space for the tool
+- **Permissions**: Read access to source directory, write access to destination directories
 
-## License
+## 🛠️ Installation Options
 
-MIT License
+### Option 1: Download Executable (Recommended)
+- Download from [Releases](../../releases) page
+- No installation required - just run!
 
-## Contributing
+### Option 2: Build from Source
+If you have Dart SDK installed:
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```bash
+# Clone the repository
+git clone https://github.com/Qharny/zip_extractor.git
+cd zip-extractor-tool
 
-## Troubleshooting
+# Install dependencies
+dart pub get
 
-**Q: The program isn't finding my ZIP files**  
-A: Make sure you're entering the correct full path to the directory containing your ZIP files and that they have the `.zip` extension (case insensitive).
+# Build executable
+dart compile exe zip_extractor.dart -o zip_extractor.exe
+```
 
-**Q: I'm getting permission errors**  
-A: Make sure you have read permissions for the source directory and write permissions for the destination directories.
+## 📚 Help & Documentation
 
-**Q: The extraction is taking a long time**  
-A: Large ZIP files or extracting to multiple destinations can take some time. The program will show progress for each extraction.
+### Command Line Options
+
+| Option | Description |
+|--------|-------------|
+| `--help`, `-h` | Show detailed help information |
+
+### Getting Help
+
+```bash
+./extractor --help
+```
+
+This will show:
+- Detailed usage instructions
+- Feature explanations
+- Examples and tips
+- Troubleshooting guidance
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**"Source folder does not exist"**
+- ✅ Check the path is correct
+- ✅ Use absolute paths (full path from root)
+- ✅ Ensure you have read permissions
+
+**"No ZIP files found"**
+- ✅ Verify ZIP files have `.zip` extension
+- ✅ Check files aren't corrupted
+- ✅ Ensure ZIP files are directly in the source folder
+
+**"Permission denied"**
+- ✅ Run as administrator (Windows) or with sudo (Linux/macOS)
+- ✅ Check destination folder permissions
+- ✅ Ensure antivirus isn't blocking the tool
+
+**"Extraction failed"**
+- ✅ ZIP file might be corrupted
+- ✅ Check available disk space
+- ✅ Verify destination path is valid
+
+### Performance Tips
+
+- **Large ZIP files**: Be patient, large archives take time
+- **Many destinations**: Each destination doubles processing time
+- **Network drives**: Local drives are faster than network locations
+- **Antivirus**: Add tool to antivirus exclusions for better performance
+
+## 🌟 Use Cases
+
+### Personal Use
+- 📁 Organizing downloaded ZIP files
+- 🎮 Extracting game files to multiple locations
+- 📸 Processing photo archives
+- 📚 Managing document collections
+
+### Professional Use
+- 🏢 IT deployments to multiple servers
+- 📊 Data processing workflows
+- 🔄 Backup and archival processes
+- 👥 Team file distribution
+
+### Development
+- 📦 Package distribution
+- 🛠️ Build artifact extraction
+- 🔧 Environment setup automation
+- 📋 Project template deployment
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. **Report Bugs** - Open an issue with details
+2. **Suggest Features** - Share your ideas
+3. **Submit Pull Requests** - Help improve the code
+4. **Improve Documentation** - Help others understand better
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/Qharny/zip_extractor.git
+cd zip-extractor-tool
+
+# Install Dart SDK (if not already installed)
+# Visit: https://dart.dev/get-dart
+
+# Install dependencies
+dart pub get
+
+# Run the tool
+dart run extractor.dart
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Dart](https://dart.dev/) programming language
+- Uses the [archive](https://pub.dev/packages/archive) package for ZIP handling
+- Inspired by the need for efficient batch ZIP extraction
+
+## 📞 Support
+
+- 🐛 **Bug Reports**: [Open an issue](../../issues)
+- 💡 **Feature Requests**: [Open an issue](../../issues)
+- 📧 **Email**: kabuteymanasseh5@gmail.com
+- 💬 **Discussions**: [GitHub Discussions](../../discussions)
+
+## 🚀 What's Next?
+
+Planned features for future versions:
+- 🎨 GUI version
+- 🔐 Password-protected ZIP support
+- 📊 Extraction statistics export
+- 🔄 Watch folder mode
+- 🎯 Selective file extraction
+- 📱 Mobile companion app
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the community**
+
+⭐ **Star this repository if you find it helpful!** ⭐
+
+[Download Latest Release](../../releases) | [Report Issue](../../issues) | [Request Feature](../../issues)
+
+</div>
