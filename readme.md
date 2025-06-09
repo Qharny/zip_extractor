@@ -32,6 +32,7 @@ A powerful, user-friendly command-line tool to extract multiple ZIP files from a
 # Run the tool
 ./extractor
 
+
 # Show help
 ./extractor --help
 ```
