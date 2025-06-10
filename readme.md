@@ -223,10 +223,10 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ## 📞 Support
 
-- 🐛 **Bug Reports**: [Open an issue](../../issues)
-- 💡 **Feature Requests**: [Open an issue](../../issues)
+- 🐛 **Bug Reports**: [Open an issue](https://github.com/Qharny/zip_extractor/issues)
+- 💡 **Feature Requests**: [Open an issue](https://github.com/Qharny/zip_extractor/issues)
 - 📧 **Email**: kabuteymanasseh5@gmail.com
-- 💬 **Discussions**: [GitHub Discussions](../../discussions)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Qharny/zip_extractor/discussions)
 
 ## 🚀 What's Next?
 
@@ -246,6 +246,6 @@ Planned features for future versions:
 
 ⭐ **Star this repository if you find it helpful!** ⭐
 
-[Download Latest Release](../../releases) | [Report Issue](../../issues) | [Request Feature](../../issues)
+[Download Latest Release](https://github.com/Qharny/zip_extractor/releases/tag/v1.0.0) | [Report Issue](https://github.com/Qharny/zip_extractor/issues) | [Request Feature](https://github.com/Qharny/zip_extractor/issues)
 
 </div>
