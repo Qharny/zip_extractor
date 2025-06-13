@@ -5,6 +5,7 @@ A powerful, user-friendly command-line tool to extract multiple ZIP files from a
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Visitor Count](https://visitor-badge.laobi.icu/badge?page_id=qharny.zip_extractor)
 
 ## ✨ Features
 
