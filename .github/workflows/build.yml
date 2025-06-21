@@ -1,0 +1,257 @@
+name: Build ZIP Extractor Tool
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  DART_VERSION: '3.2.0'
+  APP_NAME: 'zip_extractor'
+
+jobs:
+  # ============================================================================
+  # Test Job - Run tests before building
+  # ============================================================================
+  test:
+    name: 🧪 Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🎯 Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.DART_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: dart pub get
+
+      - name: 🔍 Analyze code
+        run: dart analyze
+
+      - name: 🧪 Run tests
+        run: dart test --coverage=coverage
+
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          directory: coverage/
+
+  # ============================================================================
+  # Build Job - Build for all platforms
+  # ============================================================================
+  build:
+    name: 🏗️ Build ${{ matrix.platform }}
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            os: windows-latest
+            artifact_name: zip_extractor.exe
+            dart_compile_target: windows
+
+          - platform: linux
+            os: ubuntu-latest
+            artifact_name: zip_extractor_linux
+            dart_compile_target: linux
+
+          - platform: macos
+            os: macos-latest
+            artifact_name: zip_extractor_macos
+            dart_compile_target: macos
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🎯 Setup Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.DART_VERSION }}
+
+      - name: 📦 Install dependencies
+        run: dart pub get
+
+      - name: 🏗️ Build executable for ${{ matrix.platform }}
+        run: |
+          dart compile exe zip_extractor.dart -o build/${{ matrix.artifact_name }}
+
+      - name: 📋 Get build info
+        id: build_info
+        shell: bash
+        run: |
+          # Get file size
+          if [[ "${{ matrix.platform }}" == "windows" ]]; then
+            SIZE=$(powershell -command "(Get-Item 'build/${{ matrix.artifact_name }}').length")
+            SIZE_MB=$(echo "scale=2; $SIZE / 1024 / 1024" | bc -l 2>/dev/null || echo "Unknown")
+          else
+            SIZE=$(stat -f%z "build/${{ matrix.artifact_name }}" 2>/dev/null || stat -c%s "build/${{ matrix.artifact_name }}" 2>/dev/null || echo "0")
+            SIZE_MB=$(echo "scale=2; $SIZE / 1024 / 1024" | bc -l 2>/dev/null || echo "Unknown")
+          fi
+          echo "size_mb=${SIZE_MB}" >> $GITHUB_OUTPUT
+          
+          # Get version
+          VERSION=$(grep '^version:' pubspec.yaml | cut -d' ' -f2)
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: ✅ Verify executable
+        shell: bash
+        run: |
+          echo "🔍 Verifying executable..."
+          ls -la build/
+          
+          # Test the executable (basic verification)
+          if [[ "${{ matrix.platform }}" == "windows" ]]; then
+            echo "📝 Windows executable created: build/${{ matrix.artifact_name }}"
+          else
+            chmod +x build/${{ matrix.artifact_name }}
+            echo "📝 Executable permissions set for: build/${{ matrix.artifact_name }}"
+          fi
+
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ matrix.platform }}-${{ steps.build_info.outputs.version }}
+          path: build/${{ matrix.artifact_name }}
+          retention-days: 30
+
+      - name: 📊 Build Summary
+        run: |
+          echo "## 🎉 Build Complete - ${{ matrix.platform }}" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | ${{ matrix.platform }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Artifact | ${{ matrix.artifact_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Size | ${{ steps.build_info.outputs.size_mb }} MB |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${{ steps.build_info.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Release Job - Create GitHub release on tag push
+  # ============================================================================
+  release:
+    name: 🚀 Create Release
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts/
+
+      - name: 📋 Prepare release assets
+        run: |
+          mkdir -p release-assets
+          
+          # Move and rename artifacts
+          find release-artifacts/ -name "zip_extractor.exe" -exec cp {} release-assets/zip_extractor_windows.exe \;
+          find release-artifacts/ -name "zip_extractor_linux" -exec cp {} release-assets/zip_extractor_linux \;
+          find release-artifacts/ -name "zip_extractor_macos" -exec cp {} release-assets/zip_extractor_macos \;
+          
+          # Make executables executable
+          chmod +x release-assets/zip_extractor_linux
+          chmod +x release-assets/zip_extractor_macos
+          
+          # List all assets
+          echo "📦 Release assets prepared:"
+          ls -la release-assets/
+
+      - name: 📄 Generate release notes
+        id: release_notes
+        run: |
+          # Extract version from tag
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          
+          # Create release notes
+          cat > release_notes.md << 'EOF'
+          # 🎉 ZIP Extractor Tool ${{ github.ref_name }}
+          
+          Cross-platform batch ZIP extraction tool with multi-destination support!
+          
+          ## 🌟 Features
+          - **Batch Extraction**: Extract all ZIP files from a directory at once
+          - **Multiple Destinations**: Extract to multiple locations simultaneously
+          - **Interactive CLI**: User-friendly prompts and guidance
+          - **Progress Tracking**: Real-time extraction progress
+          - **Cross-Platform**: Works on Windows, Linux, and macOS
+          
+          ## 📦 Downloads
+          
+          | Platform | Download | Architecture |
+          |----------|----------|--------------|
+          | Windows | [zip_extractor_windows.exe](../../releases/download/${{ github.ref_name }}/zip_extractor_windows.exe) | x64 |
+          | Linux | [zip_extractor_linux](../../releases/download/${{ github.ref_name }}/zip_extractor_linux) | x64 |
+          | macOS | [zip_extractor_macos](../../releases/download/${{ github.ref_name }}/zip_extractor_macos) | x64 |
+          
+          ## 🚀 Quick Start
+          1. Download the executable for your platform
+          2. Run: `./zip_extractor` (or double-click on Windows)
+          3. Follow the interactive prompts
+          4. Enjoy batch ZIP extraction!
+          
+          ## 📚 Documentation
+          - **Full Guide**: [README.md](../../blob/main/README.md)
+          - **Help**: Run with `--help` flag for detailed instructions
+          
+          ## 🐛 Report Issues
+          Found a bug? [Open an issue](../../issues/new)
+          
+          ---
+          **Built with GitHub Actions** | **Automated Release** | **Cross-Platform Ready**
+          EOF
+
+      - name: 🏷️ Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "ZIP Extractor Tool ${{ steps.release_notes.outputs.version }}"
+          body_path: release_notes.md
+          files: |
+            release-assets/zip_extractor_windows.exe
+            release-assets/zip_extractor_linux
+            release-assets/zip_extractor_macos
+          draft: false
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🎊 Release Summary
+        run: |
+          echo "## 🎉 Release Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.release_notes.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Release URL:** ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Assets:** Windows, Linux, macOS executables" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # Notification Job - Send notifications (optional)
+  # ============================================================================
+  notify:
+    name: 📢 Notify
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: 📊 Build Status Summary
+        run: |
+          echo "## 📊 Build Status Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Test | ${{ needs.test.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows Build | ${{ contains(needs.build.result, 'success') && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux Build | ${{ contains(needs.build.result, 'success') && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| macOS Build | ${{ contains(needs.build.result, 'success') && '✅ Success' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
