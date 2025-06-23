@@ -83,7 +83,7 @@ jobs:
 
       - name: 🏗️ Build executable for ${{ matrix.platform }}
         run: |
-          dart compile exe zip_extractor.dart -o build/${{ matrix.artifact_name }}
+          dart compile exe main.dart -o build/${{ matrix.artifact_name }}
 
       - name: 📋 Get build info
         id: build_info
