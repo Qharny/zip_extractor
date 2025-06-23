@@ -112,8 +112,18 @@ cd zip-extractor-tool
 dart pub get
 
 # Build executable
-dart compile exe zip_extractor.dart -o zip_extractor.exe
+dart compile exe main.dart -o zip_extractor.exe
 ```
+
+## 🛠️ Developer Note: Modular Structure
+
+- The codebase is now modularized! Core logic is split into components in `lib/components/`.
+- The main entry point for CLI is now `main.dart` (not `extractor.dart`).
+- To run from source, use:
+  ```bash
+  dart run main.dart
+  ```
+- For building executables, workflows and scripts now compile `main.dart`.
 
 ## 📚 Help & Documentation
 
@@ -209,7 +219,7 @@ cd zip-extractor-tool
 dart pub get
 
 # Run the tool
-dart run extractor.dart
+dart run main.dart
 ```
 
 ## 📄 License

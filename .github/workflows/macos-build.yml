@@ -79,7 +79,7 @@ jobs:
           mkdir -p build
           
           # Build for macOS
-          dart compile exe zip_extractor.dart -o build/zip_extractor_macos
+          dart compile exe main.dart -o build/zip_extractor_macos
           
           echo "✅ Build completed"
 
@@ -175,13 +175,13 @@ jobs:
       - name: 🏗️ Build for Intel (x64)
         run: |
           echo "🏗️ Building for Intel (x64)..."
-          dart compile exe zip_extractor.dart -o build/zip_extractor_intel
+          dart compile exe main.dart -o build/zip_extractor_intel
 
       - name: 🏗️ Build for Apple Silicon (arm64)
         run: |
           echo "🏗️ Building for Apple Silicon (arm64)..."
           # Note: This requires Dart SDK with Apple Silicon support
-          dart compile exe zip_extractor.dart -o build/zip_extractor_arm64
+          dart compile exe main.dart -o build/zip_extractor_arm64
 
       - name: 🔧 Create Universal Binary
         run: |

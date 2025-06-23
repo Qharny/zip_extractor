@@ -17,3 +17,6 @@ dev_dependencies:
 
 executables:
   extractor:
+
+# If you use 'dart run', use 'main.dart' as the entry point now.
+# The main CLI entry is now main.dart, not extractor.dart.
