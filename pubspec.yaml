@@ -13,7 +13,7 @@ dependencies:
 
 dev_dependencies:
   test: ^1.22.0
-  lints: ^3.0.0
+  lints: ^6.0.0
 
 executables:
   extractor:
