@@ -30,7 +30,7 @@ jobs:
       matrix:
         # Test on different macOS versions if needed
         os-version: [macos-latest] # Can add macos-12, macos-13
-        dart-version: ['3.2.0', 'stable']
+        dart-version: ['3.7.0', 'stable']
     
     steps:
       - name: 📥 Checkout repository
