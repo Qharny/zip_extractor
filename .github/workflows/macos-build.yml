@@ -58,7 +58,7 @@ jobs:
       - name: 📦 Get dependencies
         run: |
           echo "📦 Installing dependencies..."
-          dart pub get
+          flutter pub get
           echo "✅ Dependencies installed"
 
       - name: 🔍 Analyze code
@@ -170,7 +170,7 @@ jobs:
           sdk: 'stable'
 
       - name: 📦 Get dependencies
-        run: dart pub get
+        run: flutter pub get
 
       - name: 🏗️ Build for Intel (x64)
         run: |
