@@ -1,4 +1,5 @@
 import 'dart:io';
+import './paths.dart';
 
 Future<List<String>> getDestinations() async {
   final destinations = <String>[];
@@ -27,15 +28,17 @@ Future<List<String>> getDestinations() async {
         if (secondChance == null || secondChance.trim().isEmpty) {
           break;
         } else {
-          destinations.add(secondChance.trim());
-          print('✅ Destination added: ${secondChance.trim()}');
+          final cleaned = sanitizePath(secondChance);
+          destinations.add(cleaned);
+          print('✅ Destination added: $cleaned');
         }
       } else {
         break; // Exit the loop if the user presses Enter with destinations already added
       }
     } else {
-      destinations.add(userInput.trim());
-      print('✅ Destination added: ${userInput.trim()}');
+      final cleaned = sanitizePath(userInput);
+      destinations.add(cleaned);
+      print('✅ Destination added: $cleaned');
     }
   }
 

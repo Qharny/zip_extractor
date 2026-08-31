@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:archive/archive.dart';
 import './formatter.dart';
 import './destinations.dart';
+import './paths.dart';
 
 Future<void> runZipExtractor() async {
   print('\n🗜️  Starting ZIP Extraction Process...');
@@ -17,7 +18,7 @@ Future<void> runZipExtractor() async {
     return;
   }
 
-  final sourceDir = Directory(sourcePath.trim());
+  final sourceDir = Directory(sanitizePath(sourcePath));
 
   // Check if source exists
   if (!await sourceDir.exists()) {

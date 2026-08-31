@@ -29,17 +29,17 @@ mkdir -p build
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
     # Windows
     echo "🖥️  Building for Windows..."
-    dart compile exe zip_extractor.dart -o build/zip_extractor.exe
+    dart compile exe main.dart -o build/zip_extractor.exe
     EXECUTABLE="build/zip_extractor.exe"
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
     echo "🍎 Building for macOS..."
-    dart compile exe zip_extractor.dart -o build/zip_extractor_mac
+    dart compile exe main.dart -o build/zip_extractor_mac
     EXECUTABLE="build/zip_extractor_mac"
 else
     # Linux
     echo "🐧 Building for Linux..."
-    dart compile exe zip_extractor.dart -o build/zip_extractor_linux
+    dart compile exe main.dart -o build/zip_extractor_linux
     EXECUTABLE="build/zip_extractor_linux"
 fi
 
