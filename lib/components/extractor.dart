@@ -1,8 +1,11 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import './formatter.dart';
 import './destinations.dart';
 import './paths.dart';
+import './zip_password.dart';
+import './password_prompt.dart';
 
 Future<void> runZipExtractor() async {
   print('\n🗜️  Starting ZIP Extraction Process...');
@@ -72,15 +75,39 @@ Future<void> runZipExtractor() async {
 
   // Loop through each ZIP file
   int totalExtractions = 0;
+  int skippedForPassword = 0;
+  // Remembered so the user isn't re-prompted for every archive in a batch
+  // that shares one password. Cleared once the batch finishes below.
+  String? lastPassword;
+
   for (var file in zipFiles) {
     final zipFile = File(file.path);
     final zipName = zipFile.uri.pathSegments.last.replaceAll('.zip', '');
+    final displayName = zipFile.uri.pathSegments.last;
 
-    print('\n📦 Processing: ${zipFile.uri.pathSegments.last}');
+    print('\n📦 Processing: $displayName');
 
     try {
       final zipBytes = await zipFile.readAsBytes();
-      final archive = ZipDecoder().decodeBytes(zipBytes);
+
+      Archive archive;
+      if (isZipEncrypted(zipBytes)) {
+        print('  🔒 This archive is password-protected.');
+        final result = await _decryptWithPrompt(
+          zipBytes,
+          displayName,
+          lastPassword,
+        );
+        if (result.archive == null) {
+          print('  ⚠️  Skipping $displayName — no valid password provided.');
+          skippedForPassword++;
+          continue;
+        }
+        archive = result.archive!;
+        lastPassword = result.password;
+      } else {
+        archive = ZipDecoder().decodeBytes(zipBytes);
+      }
 
       print('  📄 Archive contains ${archive.length} file(s)');
 
@@ -115,16 +142,89 @@ Future<void> runZipExtractor() async {
     }
   }
 
+  // Best-effort: drop the reference so the password is eligible for GC once
+  // this batch is done. Dart strings are immutable, so this can't guarantee
+  // the bytes are wiped from memory the way a zeroed byte buffer could.
+  lastPassword = null;
+
   // Final summary
   print('\n' + '=' * 60);
   print('🎉 EXTRACTION COMPLETE!');
   print('📊 Summary:');
   print('  • ZIP files processed: ${zipFiles.length}');
   print('  • Total extractions: $totalExtractions');
+  if (skippedForPassword > 0) {
+    print('  • Skipped (no valid password): $skippedForPassword');
+  }
   print('  • Destinations used: ${destinations.length}');
   print('\n📂 All files extracted to:');
   for (int i = 0; i < destinations.length; i++) {
     print('  ${i + 1}. ${destinations[i]}');
   }
   print('=' * 60);
+}
+
+/// Resolves the password needed to decode an encrypted zip, prompting the
+/// user (with hidden input) and verifying each candidate against the
+/// archive's encrypted entries before ever writing a file to disk.
+///
+/// If [rememberedPassword] is given (from a previously-decrypted archive in
+/// the same batch), the user is offered a chance to reuse it first. Gives up
+/// after 3 incorrect attempts.
+Future<({Archive? archive, String? password})> _decryptWithPrompt(
+  Uint8List zipBytes,
+  String displayName,
+  String? rememberedPassword,
+) async {
+  const maxAttempts = 3;
+
+  Archive? tryPassword(String password) {
+    final decoder = ZipDecoder();
+    final archive = decoder.decodeBytes(zipBytes, password: password);
+    final ok = passwordAppearsCorrect(
+      zipBytes,
+      decoder.directory,
+      archive,
+      password,
+    );
+    return ok ? archive : null;
+  }
+
+  if (rememberedPassword != null) {
+    stdout.write('  🔑 Use the previous password for "$displayName"? (y/n): ');
+    final response = stdin.readLineSync()?.trim().toLowerCase();
+    if (response == 'y' || response == 'yes') {
+      final archive = tryPassword(rememberedPassword);
+      if (archive != null) {
+        print('  ✅ Password accepted.');
+        return (archive: archive, password: rememberedPassword);
+      }
+      print('  ❌ That password didn\'t work for this archive.');
+    }
+  }
+
+  for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+    final password = readHiddenPassword(
+      '  🔒 Enter password for "$displayName": ',
+    );
+    if (password == null) {
+      print('  ⚠️  No password entered.');
+      continue;
+    }
+
+    final archive = tryPassword(password);
+    if (archive != null) {
+      print('  ✅ Password accepted.');
+      return (archive: archive, password: password);
+    }
+
+    final attemptsLeft = maxAttempts - attempt;
+    print(
+      attemptsLeft > 0
+          ? '  ❌ Incorrect password. $attemptsLeft attempt(s) left.'
+          : '  ❌ Incorrect password.',
+    );
+  }
+
+  return (archive: null, password: null);
 }

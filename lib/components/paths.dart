@@ -15,7 +15,8 @@ String sanitizePath(String raw) {
   }
 
   if (path.startsWith('~')) {
-    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+    final home =
+        Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home != null) {
       path = home + path.substring(1);
     }

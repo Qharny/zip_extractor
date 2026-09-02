@@ -26,6 +26,8 @@ FEATURES:
   • Preserves folder structure within ZIP files
   • Shows progress and file information
   • Error handling for corrupted ZIP files
+  • Password-protected ZIP support, with hidden password input and the
+    option to reuse a password across a batch
 
 EXAMPLES:
   Source: /home/user/downloads/zips/

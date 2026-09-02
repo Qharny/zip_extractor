@@ -17,6 +17,7 @@ Most unzip tools do one thing: one archive, one destination. This one is built f
 - 🎨 **User-Friendly Interface** - Clear messages and helpful guidance
 - 💾 **Preserve Structure** - Maintains folder structure within ZIP files
 - 📈 **File Size Display** - Shows ZIP file sizes in human-readable format
+- 🔐 **Password-Protected ZIPs** - Detects encrypted archives, prompts for a hidden password, and lets you reuse one password across a batch
 
 ## 🚀 Quick Start
 
@@ -243,7 +244,6 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 Planned features for future versions:
 - 🎨 GUI version
-- 🔐 Password-protected ZIP support
 - 📊 Extraction statistics export
 - 🔄 Watch folder mode
 - 🎯 Selective file extraction
