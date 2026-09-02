@@ -1,6 +1,6 @@
 # 🗜️ ZIP Extractor Tool
 
-A powerful, user-friendly command-line tool to extract multiple ZIP files from a source directory to multiple destination directories simultaneously.
+Most unzip tools do one thing: one archive, one destination. This one is built for the case those tools ignore — **a whole folder of ZIPs, fanned out to several destinations in one pass**, each archive kept in its own named folder. Point it at a downloads folder full of ZIPs and a list of drives/servers/backup targets, and it mirrors everything in one run.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey.svg)
@@ -31,11 +31,11 @@ A powerful, user-friendly command-line tool to extract multiple ZIP files from a
 
 ```bash
 # Run the tool
-./extractor
+./zip_extractor   # or zip_extractor.exe on Windows
 
 
 # Show help
-./extractor --help
+./zip_extractor --help
 ```
 
 ## 📖 How to Use
@@ -106,7 +106,7 @@ If you have Dart SDK installed:
 ```bash
 # Clone the repository
 git clone https://github.com/Qharny/zip_extractor.git
-cd zip-extractor-tool
+cd zip_extractor
 
 # Install dependencies
 dart pub get
@@ -136,7 +136,7 @@ dart compile exe main.dart -o zip_extractor.exe
 ### Getting Help
 
 ```bash
-./extractor --help
+./zip_extractor --help
 ```
 
 This will show:
@@ -210,7 +210,7 @@ We welcome contributions! Here's how you can help:
 ```bash
 # Clone the repository
 git clone https://github.com/Qharny/zip_extractor.git
-cd zip-extractor-tool
+cd zip_extractor
 
 # Install Dart SDK (if not already installed)
 # Visit: https://dart.dev/get-dart
